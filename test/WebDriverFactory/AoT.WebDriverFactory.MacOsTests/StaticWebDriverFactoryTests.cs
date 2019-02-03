@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using NUnit.Framework;
 using OpenQA.Selenium;
@@ -15,7 +16,7 @@ namespace AoT.WebDriverFactory.MacOsTests
         [OneTimeSetUp]
         public void CheckForValidPlatform()
         {
-            Assume.That(() => Platform.CurrentPlatform.IsPlatformType(thisPlatformType));
+           Assume.That(() => RuntimeInformation.IsOSPlatform(OSPlatform.OSX));
         }
 
         [Test]

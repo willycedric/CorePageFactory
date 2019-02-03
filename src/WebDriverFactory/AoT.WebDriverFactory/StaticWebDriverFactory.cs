@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
@@ -115,13 +116,13 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd)
+        public static IWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Maximise)
         {
-            if (!Platform.CurrentPlatform.IsPlatformType(PlatformType.Mac))
+            //Platform.CurrentPlatform returns Unix on OSX so using the .Net Core RuntimeInformation class instead
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 throw new PlatformNotSupportedException("Safari is only available on Mac Os.");
             }
-            
             // I suspect that the SafariDriver is already on the path as it is within the Safari executable.
             // I currently have no means to test this
             IWebDriver driver = new SafariDriver(options);
@@ -196,13 +197,26 @@ namespace AoT.WebDriverFactory
                     return driver;
 
                 case WindowSize.Hd:
-                    driver.Manage().Window.Position = Point.Empty;
-                    driver.Manage().Window.Size = new Size(1366, 768);
+                    try
+                    {
+                        driver.Manage().Window.Position = Point.Empty;
+                    }
+                    catch(Exception)
+                    {
+                        driver.Manage().Window.Size = new Size(1366, 768);
+                    }
+                    
                     return driver;
 
                 case WindowSize.Fhd:
-                    driver.Manage().Window.Position = Point.Empty;
-                    driver.Manage().Window.Size = new Size(1920, 1080);
+                    try
+                    {
+                        driver.Manage().Window.Position = Point.Empty;
+                    }
+                    catch(Exception)
+                    {
+                        driver.Manage().Window.Size = new Size(1920, 1080);
+                    }
                     return driver;
 
                 default:
