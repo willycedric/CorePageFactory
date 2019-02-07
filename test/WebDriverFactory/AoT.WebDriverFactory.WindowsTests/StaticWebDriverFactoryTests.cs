@@ -63,39 +63,13 @@ namespace AoT.WebDriverFactory.WindowsTests
                 .WithMessage($"Headless mode is not currently supported for {browser}.");
         }
 
-        //[Test]
-        //public void HdBrowserIsOfRequestedSize()
-        //{
-        //    LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Hd) as CustomLocalWebDriver<IWebDriver>;
-
-        //    Assert.Multiple(() =>
-        //    {
-        //        Size size = LocalDriver.GetLocalDriver().Manage().Window.Size;
-        //        size.Width.Should().Be(1366);
-        //        size.Height.Should().Be(768);
-        //    });
-        //}
-
-        //[Test]
-        //public void FhdBrowserIsOfRequestedSize()
-        //{
-        //    LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Fhd) as CustomLocalWebDriver<IWebDriver>;
-
-        //    Assert.Multiple(() =>
-        //    {
-        //        Size size = LocalDriver.GetLocalDriver().Manage().Window.Size;
-        //        size.Height.Should().Be(1080);
-        //        size.Width.Should().Be(1920);
-        //    });
-        //}
-
         [Test]
         [TestCase(Browser.Firefox)]
         [TestCase(Browser.InternetExplorer)]
         [TestCase(Browser.Edge)]
         [TestCase(Browser.Chrome)]
         public void RemoteWebDriverCanBeLaunchedAndLoadExampleDotCom(Browser browser)
-        {
+        {            
             RemoteDriver = StaticWebDriverFactory.GetRemoteWebDriver(browser, new Uri("http://localhost:4444/wd/hub"), PlatformType.Any) as CustomRemoteWebDriver;
             RemoteDriver.Url = "https://example.com/";
             RemoteDriver.Title.Should().Be("Example Domain");

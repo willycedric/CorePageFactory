@@ -155,19 +155,6 @@ namespace AoT.WebDriverFactory.WindowsTests
             local.GetLocalDriver().Quit();
         }
 
-        //[Test]
-        //public void FhdBrowserIsOfRequestedSize()
-        //{
-        //    LocalDriver = this.WebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Fhd) as CustomLocalWebDriver<IWebDriver>;
-
-        //    Assert.Multiple(() =>
-        //    {
-        //        Size size = LocalDriver.GetLocalDriver().Manage().Window.Size;
-        //        size.Height.Should().Be(1080);
-        //        size.Width.Should().Be(1920);
-        //    });
-        //}
-
         [Test]
         [TestCase(Browser.Firefox)]
         [TestCase(Browser.InternetExplorer)]
