@@ -9,7 +9,8 @@ namespace AoT.WebDriverFactory.WindowsTests
     [TestFixture]
     public class StaticWebDriverFactoryTests
     {
-        private IWebDriver Driver { get; set; }
+        private CustomLocalWebDriver LocalDriver { get; set; }
+        private CustomRemoteWebDriver RemoteDriver { get; set; }
         private readonly PlatformType thisPlatformType = PlatformType.Windows;
 
         [OneTimeSetUp]
@@ -25,9 +26,9 @@ namespace AoT.WebDriverFactory.WindowsTests
         [TestCase(Browser.Chrome)]
         public void LocalWebDriverCanBeLaunchedAndLoadExampleDotCom(Browser browser)
         {
-            Driver = StaticWebDriverFactory.GetLocalWebDriver(browser);
-            Driver.Url = "https://example.com/";
-            Driver.Title.Should().Be("Example Domain");
+            LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(browser) as CustomLocalWebDriver;
+            LocalDriver.GetLocalDriver().Url = "https://example.com/";
+            LocalDriver.GetLocalDriver().Title.Should().Be("Example Domain");
         }
 
         [Test]
@@ -45,9 +46,9 @@ namespace AoT.WebDriverFactory.WindowsTests
         [TestCase(Browser.Chrome)]
         public void HeadlessBrowsersCanBeLaunched(Browser browser)
         {
-            Driver = StaticWebDriverFactory.GetLocalWebDriver(browser, true);
-            Driver.Url = "https://example.com/";
-            Driver.Title.Should().Be("Example Domain");
+            LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(browser, true) as CustomLocalWebDriver;
+            LocalDriver.GetLocalDriver().Url = "https://example.com/";
+            LocalDriver.GetLocalDriver().Title.Should().Be("Example Domain");
         }
 
         [Test]
@@ -65,11 +66,11 @@ namespace AoT.WebDriverFactory.WindowsTests
         [Test]
         public void HdBrowserIsOfRequestedSize()
         {
-            Driver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Hd);
+            LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Hd) as CustomLocalWebDriver;
 
             Assert.Multiple(() =>
             {
-                Size size = Driver.Manage().Window.Size;
+                Size size = LocalDriver.GetLocalDriver().Manage().Window.Size;
                 size.Width.Should().Be(1366);
                 size.Height.Should().Be(768);
             });
@@ -78,11 +79,11 @@ namespace AoT.WebDriverFactory.WindowsTests
         [Test]
         public void FhdBrowserIsOfRequestedSize()
         {
-            Driver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Fhd);
+            LocalDriver = StaticWebDriverFactory.GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(true), WindowSize.Fhd) as CustomLocalWebDriver;
 
             Assert.Multiple(() =>
             {
-                Size size = Driver.Manage().Window.Size;
+                Size size = LocalDriver.GetLocalDriver().Manage().Window.Size;
                 size.Height.Should().Be(1080);
                 size.Width.Should().Be(1920);
             });
@@ -95,16 +96,23 @@ namespace AoT.WebDriverFactory.WindowsTests
         [TestCase(Browser.Chrome)]
         public void RemoteWebDriverCanBeLaunchedAndLoadExampleDotCom(Browser browser)
         {
-            Driver = StaticWebDriverFactory.GetRemoteWebDriver(browser, new Uri("http://localhost:4444/wd/hub"), PlatformType.Any);
-            Driver.Url = "https://example.com/";
-            Driver.Title.Should().Be("Example Domain");
+            RemoteDriver = StaticWebDriverFactory.GetRemoteWebDriver(browser, new Uri("http://localhost:4444/wd/hub"), PlatformType.Any) as CustomRemoteWebDriver;
+            RemoteDriver.Url = "https://example.com/";
+            RemoteDriver.Title.Should().Be("Example Domain");
         }
 
 
         [TearDown]
         public void Teardown()
         {
-            Driver?.Quit();
+           if(LocalDriver!=null)
+            {
+                LocalDriver.GetLocalDriver()?.Quit();
+            }
+           if(RemoteDriver !=null)
+            {
+                RemoteDriver?.Quit();
+            }
         }
     }
 }

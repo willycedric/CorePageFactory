@@ -25,7 +25,7 @@ namespace AoT.WebDriverFactory
 
         public IDriverOptionsFactory DriverOptionsFactory { get; set; }
 
-        public virtual IWebDriver GetLocalWebDriver(Browser browser, bool headless = false)
+        public virtual ICustomWebDriver GetLocalWebDriver(Browser browser, bool headless = false)
         {
             if (headless && !(browser == Browser.Chrome || browser == Browser.Firefox))
             {
@@ -53,50 +53,50 @@ namespace AoT.WebDriverFactory
             }
         }
 
-        public virtual IWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd)
+        public virtual ICustomWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
         }
 
-        public virtual IWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd)
+        public virtual ICustomWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
         }
 
-        public virtual IWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd)
+        public virtual ICustomWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
         }
 
-        public virtual IWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd)
+        public virtual ICustomWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
         }
 
-        public virtual IWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd)
+        public virtual ICustomWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
         }
 
-        public virtual IWebDriver GetRemoteWebDriver(DriverOptions options,
+        public virtual ICustomWebDriver GetRemoteWebDriver(DriverOptions options,
             Uri gridUrl,
             WindowSize windowSize = WindowSize.Hd)
         {
             return StaticWebDriverFactory.GetRemoteWebDriver(options, gridUrl, windowSize);
         }
 
-        public virtual IWebDriver GetRemoteWebDriver(Browser browser,
+        public virtual ICustomWebDriver GetRemoteWebDriver(Browser browser,
             Uri gridUrl = null,
-            PlatformType platformType = PlatformType.Any)
+            PlatformType platformType = PlatformType.Any, bool headless=false)
         {
             Uri actualGridUrl = gridUrl ?? GridUri;
             switch (browser)
             {
                 case Browser.Firefox:
-                    return GetRemoteWebDriver(DriverOptionsFactory.GetFirefoxOptions(platformType), actualGridUrl);
+                    return GetRemoteWebDriver(DriverOptionsFactory.GetFirefoxOptions(headless,platformType), actualGridUrl);
 
                 case Browser.Chrome:
-                    return GetRemoteWebDriver(DriverOptionsFactory.GetChromeOptions(platformType), actualGridUrl);
+                    return GetRemoteWebDriver(DriverOptionsFactory.GetChromeOptions(headless, platformType), actualGridUrl);
 
                 case Browser.InternetExplorer:
                     return GetRemoteWebDriver(DriverOptionsFactory.GetInternetExplorerOptions(platformType), actualGridUrl);
@@ -112,9 +112,9 @@ namespace AoT.WebDriverFactory
             }
         }
 
-        public virtual IWebDriver SetWindowSize(IWebDriver driver, WindowSize windowSize)
+        public virtual ICustomWebDriver SetWindowSize<ICustomWebDriver>(ICustomWebDriver driver, WindowSize windowSize)
         {
-            return StaticWebDriverFactory.SetWindowSize(driver, windowSize);
+            return StaticWebDriverFactory.SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
     }
 }

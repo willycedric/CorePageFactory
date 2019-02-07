@@ -28,7 +28,7 @@ namespace AoT.WebDriverFactory
         /// <param name="browser"></param>
         /// <param name="headless"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(Browser browser, bool headless = false);
+        ICustomWebDriver GetLocalWebDriver(Browser browser, bool headless = false);
 
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd);
+        ICustomWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd);
 
         /// <summary>
         /// Return a local Firefox WebDriver instance.
@@ -45,7 +45,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd);
+        ICustomWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd);
 
         /// <summary>
         /// Return a local Edge WebDriver instance. (Only supported on Microsoft Windows 10)
@@ -53,7 +53,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd);
+        ICustomWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd);
 
         /// <summary>
         /// Return a local Internet Explorer WebDriver instance. (Only supported on Microsoft Windows)
@@ -61,7 +61,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd);
+        ICustomWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd);
 
         /// <summary>
         /// Return a local Safari WebDriver instance. (Only supported on Mac Os)
@@ -69,7 +69,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd);
+        ICustomWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd);
 
         /// <summary>
         /// Return a RemoteWebDriver of the given browser type with default settings.
@@ -78,7 +78,7 @@ namespace AoT.WebDriverFactory
         /// <param name="gridUrl"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver GetRemoteWebDriver(DriverOptions options,
+        ICustomWebDriver GetRemoteWebDriver(DriverOptions options,
             Uri gridUrl = null,
             WindowSize windowSize = WindowSize.Hd);
 
@@ -89,9 +89,9 @@ namespace AoT.WebDriverFactory
         /// <param name="gridUrl"></param>
         /// <param name="platformType"></param>
         /// <returns></returns>
-        IWebDriver GetRemoteWebDriver(Browser browser,
+        ICustomWebDriver GetRemoteWebDriver(Browser browser,
             Uri gridUrl = null,
-            PlatformType platformType = PlatformType.Any);
+            PlatformType platformType = PlatformType.Any, bool headless=false);
 
         /// <summary>
         /// Convenience method for setting the Window Size of a WebDriver to common values. (768P, 1080P and fullscreen)
@@ -99,7 +99,7 @@ namespace AoT.WebDriverFactory
         /// <param name="driver"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        IWebDriver SetWindowSize(IWebDriver driver, WindowSize windowSize);
+        T SetWindowSize<T>(T driver, WindowSize windowSize);
     }
 }
 

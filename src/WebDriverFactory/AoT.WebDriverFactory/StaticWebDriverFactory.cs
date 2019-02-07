@@ -16,6 +16,7 @@ namespace AoT.WebDriverFactory
     public static class StaticWebDriverFactory
     {
         private static string DriverPath => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private static TimeSpan DefaultTimeOut = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Return a local webdriver of the given browser type with default settings.
@@ -23,7 +24,7 @@ namespace AoT.WebDriverFactory
         /// <param name="browser"></param>
         /// <param name="headless"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(Browser browser, bool headless = false)
+        public static ICustomWebDriver GetLocalWebDriver(Browser browser, bool headless = false)
         {
             if (headless && !(browser == Browser.Chrome || browser == Browser.Firefox))
             {
@@ -58,11 +59,14 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd)
+        public static ICustomWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd)
         {
-            IWebDriver driver = new ChromeDriver(DriverPath, options);
-            return SetWindowSize(driver, windowSize);
+            
+            CustomLocalWebDriver driver = new CustomLocalWebDriver(new ChromeDriver(DriverPath, options));
+            return SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
+
+      
 
         /// <summary>
         /// Return a local Firefox WebDriver instance.
@@ -70,10 +74,10 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            IWebDriver driver = new FirefoxDriver(DriverPath, options);
-            return SetWindowSize(driver, windowSize);
+        public static ICustomWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd)  {
+            
+            CustomLocalWebDriver driver = new CustomLocalWebDriver(new FirefoxDriver(DriverPath, options));
+            return SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
 
         /// <summary>
@@ -82,15 +86,15 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd)
+        public static ICustomWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             if (!Platform.CurrentPlatform.IsPlatformType(PlatformType.WinNT))
             {
                 throw new PlatformNotSupportedException("Microsoft Edge is only available on Microsoft Windows.");
             }
 
-            IWebDriver driver = new EdgeDriver(DriverPath, options);
-            return SetWindowSize(driver, windowSize);
+            CustomLocalWebDriver driver = new CustomLocalWebDriver(new EdgeDriver(DriverPath, options));
+            return SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
 
         /// <summary>
@@ -99,15 +103,15 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd)
+        public static ICustomWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd)
         {
             if (!Platform.CurrentPlatform.IsPlatformType(PlatformType.WinNT))
             {
                 throw new PlatformNotSupportedException("Microsoft Internet Explorer is only available on Microsoft Windows.");
             }
 
-            IWebDriver driver = new InternetExplorerDriver(DriverPath, options);
-            return SetWindowSize(driver, windowSize);
+            CustomLocalWebDriver driver = new CustomLocalWebDriver(new InternetExplorerDriver(DriverPath, options)) ;
+            return SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
 
         /// <summary>
@@ -116,7 +120,7 @@ namespace AoT.WebDriverFactory
         /// <param name="options"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Maximise)
+        public static ICustomWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Maximise)
         {
             //Platform.CurrentPlatform returns Unix on OSX so using the .Net Core RuntimeInformation class instead
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -125,8 +129,8 @@ namespace AoT.WebDriverFactory
             }
             // I suspect that the SafariDriver is already on the path as it is within the Safari executable.
             // I currently have no means to test this
-            IWebDriver driver = new SafariDriver(options);
-            return SetWindowSize(driver, windowSize);
+            CustomLocalWebDriver driver = new CustomLocalWebDriver(new SafariDriver(options));
+            return SetWindowSize<ICustomWebDriver>(driver, windowSize);
         }
 
         /// <summary>
@@ -136,13 +140,13 @@ namespace AoT.WebDriverFactory
         /// <param name="gridUrl"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver GetRemoteWebDriver(
+        public static ICustomWebDriver GetRemoteWebDriver(
             DriverOptions options,
             Uri gridUrl,
             WindowSize windowSize = WindowSize.Hd)
         {
-            IWebDriver driver = new RemoteWebDriver(gridUrl, options);
-            return SetWindowSize(driver, windowSize);
+            CustomRemoteWebDriver driver = new CustomRemoteWebDriver(gridUrl, options.ToCapabilities(), DefaultTimeOut);
+            return SetWindowSize<CustomRemoteWebDriver>(driver, windowSize);
         }
 
         /// <summary>
@@ -152,10 +156,10 @@ namespace AoT.WebDriverFactory
         /// <param name="gridUrl"></param>
         /// <param name="platformType"></param>
         /// <returns></returns>
-        public static IWebDriver GetRemoteWebDriver(
+        public static ICustomWebDriver GetRemoteWebDriver(
             Browser browser,
             Uri gridUrl,
-            PlatformType platformType = PlatformType.Any)
+            PlatformType platformType = PlatformType.Any, bool headless=false)
         {
             switch (browser)
             {
@@ -185,38 +189,89 @@ namespace AoT.WebDriverFactory
         /// <param name="driver"></param>
         /// <param name="windowSize"></param>
         /// <returns></returns>
-        public static IWebDriver SetWindowSize(IWebDriver driver, WindowSize windowSize)
+        public static T SetWindowSize<T>(T driver, WindowSize windowSize)
         {
+
             switch (windowSize)
             {
                 case WindowSize.Unchanged:
                     return driver;
 
                 case WindowSize.Maximise:
-                    driver.Manage().Window.Maximize();
-                    return driver;
-
-                case WindowSize.Hd:
-                    try
+                    if ( driver as ICustomWebDriver!=null)
                     {
-                        driver.Manage().Window.Position = Point.Empty;
+                        var d = driver as CustomLocalWebDriver;
+                        d.GetLocalDriver().Manage().Window.Maximize();
+                        
                     }
-                    catch(Exception)
+                    else
                     {
-                        driver.Manage().Window.Size = new Size(1366, 768);
+                        var d = driver as CustomRemoteWebDriver;
+                        d.Manage().Window.Maximize();
+                        
+                    }
+                    return driver;
+                case WindowSize.Hd:
+                    if (driver as CustomLocalWebDriver != null)
+                    {
+                        var d = driver as CustomLocalWebDriver;
+                        try
+                        {
+                            d.GetLocalDriver().Manage().Window.Position = Point.Empty;
+                            d.GetLocalDriver().Manage().Window.Size = new Size(1366, 768);
+                        }
+                        catch (Exception)
+                        {
+                            d.GetLocalDriver().Manage().Window.Size = new Size(1366, 768);
+                        }
+                       
+                    }
+                    else
+                    {
+                        var d = driver as CustomRemoteWebDriver;
+                        try
+                        {
+                            d.Manage().Window.Position = Point.Empty;
+                            d.Manage().Window.Size = new Size(1366, 768);
+                        }
+                        catch (Exception)
+                        {
+                            d.Manage().Window.Size = new Size(1366, 768);
+                        }
+                       
+
+                    }
+                    return driver;
+                case WindowSize.Fhd:                  
+                    if ( driver as CustomLocalWebDriver !=null)
+                    {
+                        var d = driver as CustomLocalWebDriver;
+                        try
+                        {
+                            d.GetLocalDriver().Manage().Window.Position = Point.Empty;
+                            d.GetLocalDriver().Manage().Window.Size = new Size(1920, 1080);
+                        }
+                        catch (Exception)
+                        {
+                            d.GetLocalDriver().Manage().Window.Size = new Size(1920, 1080);
+                        }
+                        
+                    }
+                    else
+                    {
+                        var d = driver as CustomRemoteWebDriver;
+                        try
+                        {
+                            d.Manage().Window.Position = Point.Empty;
+                            d.Manage().Window.Size = new Size(1920, 1080);
+                        }
+                        catch (Exception)
+                        {
+                            d.Manage().Window.Size = new Size(1920, 1080);
+                        }
+                       
                     }
                     
-                    return driver;
-
-                case WindowSize.Fhd:
-                    try
-                    {
-                        driver.Manage().Window.Position = Point.Empty;
-                    }
-                    catch(Exception)
-                    {
-                        driver.Manage().Window.Size = new Size(1920, 1080);
-                    }
                     return driver;
 
                 default:
