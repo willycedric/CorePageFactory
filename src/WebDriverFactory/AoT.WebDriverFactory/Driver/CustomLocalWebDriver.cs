@@ -3,12 +3,12 @@ using System;
 
 namespace AoT.WebDriverFactory
 {
-    public class CustomLocalWebDriver :  ITakesScreenshot, ICustomWebDriver
+    public class CustomLocalWebDriver<TDriverIn> :  ITakesScreenshot, ICustomWebDriver
     {
 
-        private  IWebDriver _driver = null;
+        private TDriverIn _driver;
 
-        public CustomLocalWebDriver(IWebDriver driver)
+        public  CustomLocalWebDriver(TDriverIn driver)
         {
             _driver = driver;
         }
@@ -18,8 +18,9 @@ namespace AoT.WebDriverFactory
             {
                 throw new ArgumentNullException(" The local driver has not been initialized yet");
             }
-            return _driver;
+            return _driver as IWebDriver;
         }
+        
 
         /// <summary>
         /// object representing the image of the page on the screen.
@@ -30,5 +31,6 @@ namespace AoT.WebDriverFactory
             Screenshot screenshot = ((ITakesScreenshot)_driver).GetScreenshot();
             return screenshot;
         }
-    }
+}
+
 }

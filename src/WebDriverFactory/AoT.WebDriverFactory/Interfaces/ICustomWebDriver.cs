@@ -6,5 +6,6 @@ namespace AoT.WebDriverFactory
 {
     public interface ICustomWebDriver
     {
+
     }
 }

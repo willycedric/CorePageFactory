@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Edge;
@@ -25,7 +26,9 @@ namespace AoT.WebDriverFactory
 
         public IDriverOptionsFactory DriverOptionsFactory { get; set; }
 
-        public virtual ICustomWebDriver GetLocalWebDriver(Browser browser, bool headless = false)
+        //@TODO: understand the difference between this method and  the one ine StaticWebDriverFactory
+        //Futhermore understant the difference between those two factories
+        public virtual ICustomWebDriver GetLocalWebDriver(Browser browser, bool headless = false, WindowSize windowSize = WindowSize.Maximise)
         {
             if (headless && !(browser == Browser.Chrome || browser == Browser.Firefox))
             {
@@ -34,49 +37,31 @@ namespace AoT.WebDriverFactory
             switch (browser)
             {
                 case Browser.Firefox:
-                    return GetLocalWebDriver(StaticDriverOptionsFactory.GetFirefoxOptions(headless));
-
+                    var customFirefox = new CustomLocalWebDriver<FirefoxDriver>(new FirefoxDriver(StaticDriverOptionsFactory.GetFirefoxOptions(headless)));
+                    return SetWindowSize<FirefoxDriver>(customFirefox, windowSize);
                 case Browser.Chrome:
-                    return GetLocalWebDriver(StaticDriverOptionsFactory.GetChromeOptions(headless));
-
-                case Browser.InternetExplorer:
-                    return GetLocalWebDriver(StaticDriverOptionsFactory.GetInternetExplorerOptions());
-
-                case Browser.Edge:
-                    return GetLocalWebDriver(StaticDriverOptionsFactory.GetEdgeOptions());
-
+                    var customChrome = new CustomLocalWebDriver<ChromeDriver>(new ChromeDriver(StaticDriverOptionsFactory.GetChromeOptions(headless)));
+                    return SetWindowSize<ChromeDriver>(customChrome, windowSize);
+                case Browser.InternetExplorer:   
+                    var customIE = new CustomLocalWebDriver<InternetExplorerDriver>(new InternetExplorerDriver(StaticDriverOptionsFactory.GetInternetExplorerOptions()));
+                    return SetWindowSize<InternetExplorerDriver>(customIE, windowSize);
+                case Browser.Edge:          
+                    var customEdge = new CustomLocalWebDriver<EdgeDriver>(new EdgeDriver(StaticDriverOptionsFactory.GetEdgeOptions()));
+                    return SetWindowSize<EdgeDriver>(customEdge, windowSize);
                 case Browser.Safari:
-                    return GetLocalWebDriver(StaticDriverOptionsFactory.GetSafariOptions());
-
+                    //Platform.CurrentPlatform returns Unix on OSX so using the .Net Core RuntimeInformation class instead
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        throw new PlatformNotSupportedException($"because {browser} is not supported on {Platform.CurrentPlatform}, is only available on OSX");
+                    }
+                    var customSafari = new CustomLocalWebDriver<SafariDriver>(new SafariDriver(StaticDriverOptionsFactory.GetSafariOptions()));
+                    return SetWindowSize<SafariDriver>(customSafari, windowSize);
                 default:
                     throw new PlatformNotSupportedException($"{browser} is not currently supported.");
             }
         }
 
-        public virtual ICustomWebDriver GetLocalWebDriver(ChromeOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
-        }
 
-        public virtual ICustomWebDriver GetLocalWebDriver(FirefoxOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
-        }
-
-        public virtual ICustomWebDriver GetLocalWebDriver(EdgeOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
-        }
-
-        public virtual ICustomWebDriver GetLocalWebDriver(InternetExplorerOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
-        }
-
-        public virtual ICustomWebDriver GetLocalWebDriver(SafariOptions options, WindowSize windowSize = WindowSize.Hd)
-        {
-            return StaticWebDriverFactory.GetLocalWebDriver(options, windowSize);
-        }
 
         public virtual ICustomWebDriver GetRemoteWebDriver(DriverOptions options,
             Uri gridUrl,
@@ -105,6 +90,11 @@ namespace AoT.WebDriverFactory
                     return GetRemoteWebDriver(DriverOptionsFactory.GetEdgeOptions(platformType), actualGridUrl);
 
                 case Browser.Safari:
+                    //Platform.CurrentPlatform returns Unix on OSX so using the .Net Core RuntimeInformation class instead
+                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        throw new PlatformNotSupportedException($"because {browser} is not supported on {Platform.CurrentPlatform}.");
+                    }
                     return GetRemoteWebDriver(DriverOptionsFactory.GetSafariOptions(platformType), actualGridUrl);
 
                 default:
@@ -112,9 +102,9 @@ namespace AoT.WebDriverFactory
             }
         }
 
-        public virtual ICustomWebDriver SetWindowSize<ICustomWebDriver>(ICustomWebDriver driver, WindowSize windowSize)
+        public virtual ICustomWebDriver SetWindowSize<Toutput>(ICustomWebDriver driver, WindowSize windowSize)
         {
-            return StaticWebDriverFactory.SetWindowSize<ICustomWebDriver>(driver, windowSize);
+            return StaticWebDriverFactory.SetWindowSize<Toutput>(driver, windowSize);
         }
     }
 }
